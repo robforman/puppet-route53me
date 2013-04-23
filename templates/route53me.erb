@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# This file is under Puppet control.  Do not edit manually.
+#
+FQDN=$(facter fqdn)
+IPADDRESS=$(facter ipaddress)
+
+if [ "$FQDN" == "" ]; then
+  echo "Could not find fqdn"
+  exit 1
+fi
+
+if [ "$IPADDRESS" == "" ]; then
+  echo "Could not find ipaddress"
+  exit 1
+fi
+
+OUTPUT=$(AWS_ACCESS_KEY_ID=<%= aws_access_key_id %> AWS_SECRET_ACCESS_KEY=<%= aws_secret_access_key %> /usr/local/bin/route53 change_record <%= aws_zone_id %> "$FQDN." "A" "$IPADDRESS")
+
+if [ $? -ne 0 ]; then
+  echo "$0 error - $OUTPUT"
+  exit 2
+fi
+
+echo "Updated $FQDN to $IPADDRESS"
